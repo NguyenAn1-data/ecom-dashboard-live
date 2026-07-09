@@ -264,7 +264,7 @@ export default function DecompositionTree({
   };
 
   return (
-    <div className="w-full flex flex-col h-full bg-[#05070c] border border-slate-900 rounded-xl p-6 relative overflow-hidden select-none">
+    <div className="w-full flex flex-col h-full bg-[#05070c] border border-slate-900 rounded-xl p-6 relative overflow-hidden select-none" ref={containerRef}>
       
       {/* Top controls */}
       <div className="flex justify-between items-center mb-6 z-10">
@@ -312,7 +312,7 @@ export default function DecompositionTree({
       </div>
 
       {/* SVG Canvas for Connections */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden" ref={containerRef}>
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <svg className="w-full h-full">
           {connections.map((conn, idx) => {
             const dx = conn.toX - conn.fromX;
