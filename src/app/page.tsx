@@ -440,7 +440,40 @@ export default function Home() {
     };
   }, [filteredTransactions]);
 
-  // E-commerce behavioral funnel metrics back-calculated from actual purchases
+  // Average Days Between Orders calculation
+  const avgDaysBetweenOrders = React.useMemo(() => {
+    const customerOrderDates = new Map<string, Set<string>>();
+    filteredTransactions.forEach(t => {
+      if (!t.orderDate) return;
+      if (!customerOrderDates.has(t.customerName)) {
+        customerOrderDates.set(t.customerName, new Set());
+      }
+      customerOrderDates.get(t.customerName)!.add(t.orderDate);
+    });
+
+    let totalIntervalDays = 0;
+    let totalIntervals = 0;
+
+    customerOrderDates.forEach((dateSet) => {
+      if (dateSet.size < 2) return;
+      const sortedDates = Array.from(dateSet)
+        .map(d => new Date(d).getTime())
+        .sort((a, b) => a - b);
+
+      for (let i = 0; i < sortedDates.length - 1; i++) {
+        const diffTime = sortedDates[i + 1] - sortedDates[i];
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        totalIntervalDays += diffDays;
+        totalIntervals++;
+      }
+    });
+
+    return totalIntervals > 0 ? Math.round(totalIntervalDays / totalIntervals) : 0;
+  }, [filteredTransactions]);
+
+  const globalAOV = totalOrders > 0 ? totalSales / totalOrders : 0;
+
+  // E-commerce behavioral funnel metrics back-calculated from actual purchases with Lost Revenue Opportunity
   const funnelData = React.useMemo(() => {
     const purchases = totalOrders;
     const checkouts = Math.round(purchases * 1.43);
@@ -448,14 +481,19 @@ export default function Home() {
     const productViews = Math.round(purchases * 28);
     const trafficSessions = Math.round(purchases * 85);
 
+    const checkoutDrop = checkouts - purchases;
+    const cartDrop = cartAdds - checkouts;
+    const viewsDrop = productViews - cartAdds;
+    const trafficDrop = trafficSessions - productViews;
+
     return [
-      { name: '1. Sessions', value: trafficSessions, percent: 100, color: '#475569' },
-      { name: '2. Product Views', value: productViews, percent: Math.round((productViews / trafficSessions) * 100), color: '#3b82f6' },
-      { name: '3. Cart Adds', value: cartAdds, percent: Math.round((cartAdds / productViews) * 100), color: '#06b6d4' },
-      { name: '4. Checkouts', value: checkouts, percent: Math.round((checkouts / cartAdds) * 100), color: '#f59e0b' },
-      { name: '5. Completed', value: purchases, percent: Math.round((purchases / checkouts) * 100), color: '#10b981' }
+      { name: '1. Sessions', value: trafficSessions, percent: 100, color: '#475569', lostRevenue: 0 },
+      { name: '2. Views', value: productViews, percent: Math.round((productViews / trafficSessions) * 100), color: '#3b82f6', lostRevenue: trafficDrop * globalAOV },
+      { name: '3. Cart Adds', value: cartAdds, percent: Math.round((cartAdds / productViews) * 100), color: '#06b6d4', lostRevenue: viewsDrop * globalAOV },
+      { name: '4. Checkouts', value: checkouts, percent: Math.round((checkouts / cartAdds) * 100), color: '#f59e0b', lostRevenue: cartDrop * globalAOV },
+      { name: '5. Completed', value: purchases, percent: Math.round((purchases / checkouts) * 100), color: '#10b981', lostRevenue: checkoutDrop * globalAOV }
     ];
-  }, [totalOrders]);
+  }, [totalOrders, globalAOV]);
 
   // Data Quality Audit checks
   const auditResults = React.useMemo(() => {
@@ -1117,36 +1155,59 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-max">
               
               {/* Funnel Analysis (Span 7) */}
-              <div className="lg:col-span-7 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg animate-in fade-in duration-300">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Behavioral Funnel Analysis (Phễu hành vi)</h3>
-                <p className="text-xs text-slate-500 mb-6">Drop-offs and conversions from Traffic to Completed Purchases</p>
-                
-                <div className="w-full h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={funnelData} layout="vertical" margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
-                      <XAxis type="number" stroke="#475569" fontSize={9} tickLine={false} />
-                      <YAxis dataKey="name" type="category" stroke="#475569" fontSize={10} tickLine={false} width={100} />
-                      <ChartTooltip
-                        contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
-                        itemStyle={{ fontSize: 11 }}
-                      />
-                      <Bar dataKey="value" name="Sessions/Actions count" fill="#3b82f6" radius={[0, 4, 4, 0]}>
-                        {funnelData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+              <div className="lg:col-span-7 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg animate-in fade-in duration-300 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Behavioral Funnel Analysis (Phễu hành vi)</h3>
+                  <p className="text-xs text-slate-500 mb-4">Drop-offs and conversions from Traffic to Completed Purchases</p>
+                  
+                  <div className="w-full h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={funnelData} layout="vertical" margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
+                        <XAxis type="number" stroke="#475569" fontSize={9} tickLine={false} />
+                        <YAxis dataKey="name" type="category" stroke="#475569" fontSize={10} tickLine={false} width={100} />
+                        <ChartTooltip
+                          contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
+                          itemStyle={{ fontSize: 11 }}
+                        />
+                        <Bar dataKey="value" name="Sessions/Actions count" fill="#3b82f6" radius={[0, 4, 4, 0]}>
+                          {funnelData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-2 text-center font-mono mt-2 text-[9px] pt-3 border-t border-slate-950">
+                    {funnelData.map((item, idx) => (
+                      <div key={idx} className="flex flex-col items-center">
+                        <span className="text-slate-500">{item.name.split('. ')[1]}</span>
+                        <span className="text-slate-200 font-bold mt-0.5">{item.value.toLocaleString()}</span>
+                        <span className="text-blue-400 font-semibold mt-0.5">({item.percent}%)</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-5 gap-2 text-center font-mono mt-4 text-[9px] pt-4 border-t border-slate-950">
-                  {funnelData.map((item, idx) => (
-                    <div key={idx} className="flex flex-col items-center">
-                      <span className="text-slate-500">{item.name.split('. ')[1]}</span>
-                      <span className="text-slate-200 font-bold mt-0.5">{item.value.toLocaleString()}</span>
-                      <span className="text-blue-400 font-semibold mt-0.5">({item.percent}%)</span>
+                <div className="mt-4 pt-4 border-t border-slate-950/80">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Opportunity Loss Analysis (Thất thoát doanh thu ước tính)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+                    <div className="bg-[#050810]/60 p-2.5 rounded-lg border border-slate-950 flex flex-col justify-between">
+                      <span className="text-[9px] text-slate-500 uppercase font-bold">Cart Abandonment Loss</span>
+                      <span className="text-rose-400 font-bold mt-1">-{formatCurrency((funnelData[2].value - funnelData[3].value) * globalAOV)}</span>
+                      <span className="text-[8px] text-slate-500 mt-0.5">Dropped at Cart stage</span>
                     </div>
-                  ))}
+                    <div className="bg-[#050810]/60 p-2.5 rounded-lg border border-slate-950 flex flex-col justify-between">
+                      <span className="text-[9px] text-slate-500 uppercase font-bold">Checkout Abandonment</span>
+                      <span className="text-rose-400 font-bold mt-1">-{formatCurrency((funnelData[3].value - funnelData[4].value) * globalAOV)}</span>
+                      <span className="text-[8px] text-slate-500 mt-0.5">Abandoned at Checkout</span>
+                    </div>
+                    <div className="bg-[#050810]/60 p-2.5 rounded-lg border border-slate-950 flex flex-col justify-between">
+                      <span className="text-[9px] text-slate-500 uppercase font-bold">Total Funnel Leakage</span>
+                      <span className="text-rose-500 font-bold mt-1">-{formatCurrency((funnelData[0].value - funnelData[4].value) * globalAOV)}</span>
+                      <span className="text-[8px] text-slate-500 mt-0.5">Total funnel drop loss</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1207,6 +1268,16 @@ export default function Home() {
                       <span className="text-slate-400">Returning (Retention)</span>
                     </div>
                     <span className="text-white font-bold">{formatCurrency(returningRevenue)} ({totalSales > 0 ? ((returningRevenue / totalSales) * 100).toFixed(0) : 0}%)</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-950/80 flex items-center justify-between text-xs font-mono">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-slate-500 uppercase font-bold">Avg Days Between Orders</span>
+                    <span className="text-blue-400 font-bold mt-0.5">{avgDaysBetweenOrders} Days</span>
+                  </div>
+                  <div className="text-[9px] text-slate-500 text-right">
+                    <span>Average repeat purchase interval</span>
                   </div>
                 </div>
               </div>
