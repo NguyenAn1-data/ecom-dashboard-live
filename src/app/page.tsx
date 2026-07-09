@@ -31,7 +31,10 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend
+  Legend,
+  FunnelChart,
+  Funnel,
+  LabelList
 } from 'recharts';
 import DecompositionTree from '@/components/DecompositionTree';
 
@@ -1183,19 +1186,22 @@ export default function Home() {
                   
                   <div className="w-full h-[240px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={funnelData} layout="vertical" margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
-                        <XAxis type="number" stroke="#475569" fontSize={9} tickLine={false} />
-                        <YAxis dataKey="name" type="category" stroke="#475569" fontSize={10} tickLine={false} width={100} />
+                      <FunnelChart margin={{ top: 10, right: 120, left: 120, bottom: 10 }}>
                         <ChartTooltip
                           contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
                           itemStyle={{ fontSize: 11 }}
                         />
-                        <Bar dataKey="value" name="Sessions/Actions count" fill="#3b82f6" radius={[0, 4, 4, 0]}>
+                        <Funnel
+                          dataKey="value"
+                          data={funnelData}
+                          isAnimationActive
+                        >
+                          <LabelList position="right" fill="#94a3b8" stroke="none" dataKey="name" fontSize={9} />
                           {funnelData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                            <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.85} />
                           ))}
-                        </Bar>
-                      </BarChart>
+                        </Funnel>
+                      </FunnelChart>
                     </ResponsiveContainer>
                   </div>
 
