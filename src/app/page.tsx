@@ -520,7 +520,7 @@ export default function Home() {
   return (
     <div className="min-h-screen premium-bg text-slate-100 font-sans flex flex-col antialiased">
       {/* GLOBAL SVG GRADIENT DEFINITIONS */}
-      <svg className="hidden">
+      <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
         <defs>
           <linearGradient id="cyanPurple" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#00f0ff" />
