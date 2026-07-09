@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronRight, Plus, X, BarChart3, TrendingUp, DollarSign } from 'lucide-react';
+import { ChevronRight, Plus, X, BarChart3, TrendingUp, DollarSign, Maximize2, Minimize2 } from 'lucide-react';
 
 interface Transaction {
   orderDate: string;
@@ -65,6 +65,36 @@ export default function DecompositionTree({
   const rootNodeRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [connections, setConnections] = useState<any[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  // Toggle browser native fullscreen
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error(`Error enabling fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  // Sync state on fullscreen change (e.g. if user presses Esc)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = document.fullscreenElement === containerRef.current;
+      setIsFullscreen(isCurrentlyFullscreen);
+      // Give DOM time to update layout, then recalculate SVG connections
+      setTimeout(() => {
+        updateConnections();
+      }, 100);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   // Reset columns selection when active metric changes
   useEffect(() => {
@@ -264,7 +294,9 @@ export default function DecompositionTree({
   };
 
   return (
-    <div className="w-full flex flex-col h-full bg-[#05070c] border border-slate-900 rounded-xl p-6 relative overflow-hidden select-none" ref={containerRef}>
+    <div className={`w-full flex flex-col h-full bg-[#05070c] border border-slate-900 rounded-xl p-6 relative select-none transition-all duration-300 ${
+      isFullscreen ? 'fixed inset-0 z-[9999] bg-[#020408] border-none rounded-none w-screen h-screen p-10 overflow-auto' : 'overflow-hidden'
+    }`} ref={containerRef}>
       
       {/* Top controls */}
       <div className="flex justify-between items-center mb-6 z-10">
@@ -276,37 +308,48 @@ export default function DecompositionTree({
           <p className="text-xs text-slate-400">Drill down and split metrics by dimensions dynamically</p>
         </div>
 
-        {/* Metric Selector Tabs */}
-        <div className="flex bg-[#0d1220] p-1 rounded-lg border border-slate-800">
+        <div className="flex items-center gap-3">
+          {/* Metric Selector Tabs */}
+          <div className="flex bg-[#0d1220] p-1 rounded-lg border border-slate-800">
+            <button
+              onClick={() => setActiveMetric('salesValue')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                activeMetric === 'salesValue'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Revenue
+            </button>
+            <button
+              onClick={() => setActiveMetric('netProfit')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                activeMetric === 'netProfit'
+                  ? 'bg-emerald-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Net Profit
+            </button>
+            <button
+              onClick={() => setActiveMetric('costOfSales')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                activeMetric === 'costOfSales'
+                  ? 'bg-amber-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Cost of Sales
+            </button>
+          </div>
+
+          {/* Fullscreen Toggle Button */}
           <button
-            onClick={() => setActiveMetric('salesValue')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              activeMetric === 'salesValue'
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
+            onClick={toggleFullscreen}
+            className="p-2 rounded-lg bg-[#0d1220] border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all flex items-center justify-center"
+            title={isFullscreen ? 'Thoát toàn màn hình' : 'Xem toàn màn hình'}
           >
-            Revenue
-          </button>
-          <button
-            onClick={() => setActiveMetric('netProfit')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              activeMetric === 'netProfit'
-                ? 'bg-emerald-600 text-white shadow-lg'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Net Profit
-          </button>
-          <button
-            onClick={() => setActiveMetric('costOfSales')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              activeMetric === 'costOfSales'
-                ? 'bg-amber-600 text-white shadow-lg'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Cost of Sales
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
         </div>
       </div>
