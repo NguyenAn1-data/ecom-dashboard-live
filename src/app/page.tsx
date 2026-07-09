@@ -334,8 +334,8 @@ export default function Home() {
 
   // 2. Shipping Donut Chart Data
   const shippingDonutData = [
-    { name: 'On-time', value: onTimeOrders, color: '#10b981' },
-    { name: 'Late Shipping', value: lateOrders, color: '#f59e0b' }
+    { name: 'On-time', value: onTimeOrders, color: '#00f0ff' },
+    { name: 'Late Shipping', value: lateOrders, color: '#d946ef' }
   ].filter(d => d.value > 0);
 
   // 3. Credit Limit Bar Chart Data
@@ -397,8 +397,8 @@ export default function Home() {
   const returningRevenue = classifiedTransactions.filter(t => t.customerType === 'Returning').reduce((sum, t) => sum + t.salesValue, 0);
 
   const acquisitionVsRetentionData = [
-    { name: 'Acquisition (New)', value: newRevenue, color: '#3b82f6' },
-    { name: 'Retention (Returning)', value: returningRevenue, color: '#10b981' }
+    { name: 'Acquisition (New)', value: newRevenue, color: 'url(#cyanPurpleHoriz)' },
+    { name: 'Retention (Returning)', value: returningRevenue, color: '#00f0ff' }
   ].filter(d => d.value > 0);
 
   // Compute VIP Customer List / AOV / Frequency
@@ -433,8 +433,8 @@ export default function Home() {
     return {
       customerList: customerList.sort((a, b) => b.salesTotal - a.salesTotal), // VIPs first
       frequencyBucketsData: [
-        { name: '1 Order (Single)', count: single, color: '#3b82f6' },
-        { name: '2 Orders (Repeat)', count: double, color: '#10b981' },
+        { name: '1 Order (Single)', count: single, color: 'url(#cyanPurpleHoriz)' },
+        { name: '2 Orders (Repeat)', count: double, color: '#00f0ff' },
         { name: '3+ Orders (Loyal)', count: loyal, color: '#8b5cf6' }
       ]
     };
@@ -488,10 +488,10 @@ export default function Home() {
 
     return [
       { name: '1. Sessions', value: trafficSessions, percent: 100, color: '#475569', lostRevenue: 0 },
-      { name: '2. Views', value: productViews, percent: Math.round((productViews / trafficSessions) * 100), color: '#3b82f6', lostRevenue: trafficDrop * globalAOV },
-      { name: '3. Cart Adds', value: cartAdds, percent: Math.round((cartAdds / productViews) * 100), color: '#06b6d4', lostRevenue: viewsDrop * globalAOV },
-      { name: '4. Checkouts', value: checkouts, percent: Math.round((checkouts / cartAdds) * 100), color: '#f59e0b', lostRevenue: cartDrop * globalAOV },
-      { name: '5. Completed', value: purchases, percent: Math.round((purchases / checkouts) * 100), color: '#10b981', lostRevenue: checkoutDrop * globalAOV }
+      { name: '2. Views', value: productViews, percent: Math.round((productViews / trafficSessions) * 100), color: 'url(#cyanPurpleHoriz)', lostRevenue: trafficDrop * globalAOV },
+      { name: '3. Cart Adds', value: cartAdds, percent: Math.round((cartAdds / productViews) * 100), color: 'url(#cyanPurpleHoriz)', lostRevenue: viewsDrop * globalAOV },
+      { name: '4. Checkouts', value: checkouts, percent: Math.round((checkouts / cartAdds) * 100), color: '#d946ef', lostRevenue: cartDrop * globalAOV },
+      { name: '5. Completed', value: purchases, percent: Math.round((purchases / checkouts) * 100), color: '#00f0ff', lostRevenue: checkoutDrop * globalAOV }
     ];
   }, [totalOrders, globalAOV]);
 
@@ -515,10 +515,31 @@ export default function Home() {
   }, [filteredTransactions]);
 
   return (
-    <div className="min-h-screen bg-[#020408] text-slate-100 font-sans flex flex-col antialiased">
+    <div className="min-h-screen premium-bg text-slate-100 font-sans flex flex-col antialiased">
+      {/* GLOBAL SVG GRADIENT DEFINITIONS */}
+      <svg className="hidden">
+        <defs>
+          <linearGradient id="cyanPurple" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#00f0ff" />
+            <stop offset="100%" stopColor="#a855f7" />
+          </linearGradient>
+          <linearGradient id="pinkBlue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#d946ef" />
+            <stop offset="100%" stopColor="#3b82f6" />
+          </linearGradient>
+          <linearGradient id="cyanPurpleHoriz" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#00f0ff" />
+            <stop offset="100%" stopColor="#a855f7" />
+          </linearGradient>
+          <linearGradient id="pinkBlueHoriz" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#d946ef" />
+            <stop offset="100%" stopColor="#3b82f6" />
+          </linearGradient>
+        </defs>
+      </svg>
       
       {/* 1. HEADER & GLOBAL FILTERS BAR */}
-      <header className="border-b border-slate-900 bg-[#040810]/50 backdrop-blur-md px-8 py-5 flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center sticky top-0 z-40">
+      <header className="border-b border-white/5 bg-[#151628]/60 backdrop-blur-md px-8 py-5 flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-2 text-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
             <Layers className="w-6 h-6" />
@@ -527,12 +548,12 @@ export default function Home() {
             <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
               E-Commerce Bento Dashboard
               {isDemoMode && (
-                <span className="text-[10px] bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
+                <span className="text-[10px] bg-fuchsia-500/10 border border-amber-500/30 text-amber-500 font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
                   Demo Mode
                 </span>
               )}
               {!isDemoMode && !loading && !error && (
-                <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-semibold px-2 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
+                <span className="text-[10px] bg-cyan-400/10 border border-emerald-500/30 text-emerald-500 font-semibold px-2 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Live
                 </span>
               )}
@@ -627,7 +648,7 @@ export default function Home() {
           <div className="flex justify-center gap-3">
             <button
               onClick={() => fetchData(true)}
-              className="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              className="bg-amber-600 hover:bg-fuchsia-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(245,158,11,0.15)]"
             >
               Use Demo Data (Xem thử Dữ liệu mẫu)
             </button>
@@ -715,7 +736,7 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-max">
               
               {/* KPI 1: REVENUE CARD (Span 3) */}
-              <div className="lg:col-span-3 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
+              <div className="lg:col-span-3 premium-card rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total Revenue</span>
@@ -734,7 +755,7 @@ export default function Home() {
               </div>
 
               {/* KPI 2: COST OF SALES CARD (Span 3) */}
-              <div className="lg:col-span-3 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
+              <div className="lg:col-span-3 premium-card rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Cost of Sales</span>
@@ -753,7 +774,7 @@ export default function Home() {
               </div>
 
               {/* KPI 3: NET PROFIT CARD (Span 3) */}
-              <div className="lg:col-span-3 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
+              <div className="lg:col-span-3 premium-card rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Net Profit</span>
@@ -774,7 +795,7 @@ export default function Home() {
               </div>
 
               {/* KPI 4: LATE SHIPPING CARD (Span 3) */}
-              <div className="lg:col-span-3 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
+              <div className="lg:col-span-3 premium-card rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Late Shipping Rate</span>
@@ -793,7 +814,7 @@ export default function Home() {
               </div>
 
               {/* ROW 2: MAIN CHART - REVENUE TREND (Span 8) */}
-              <div className="lg:col-span-8 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg">
+              <div className="lg:col-span-8 premium-card rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Monthly Revenue & Profit Growth</h3>
@@ -809,12 +830,12 @@ export default function Home() {
                     <AreaChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
                         </linearGradient>
                         <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#d946ef" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <XAxis dataKey="dateStr" stroke="#475569" fontSize={10} tickLine={false} />
@@ -824,8 +845,8 @@ export default function Home() {
                         labelStyle={{ color: '#fff', fontWeight: 'bold', fontSize: 11 }}
                         itemStyle={{ fontSize: 11 }}
                       />
-                      <Area type="monotone" dataKey="sales" name="Revenue" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorSales)" />
-                      <Area type="monotone" dataKey="profit" name="Net Profit" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorProfit)" />
+                      <Area type="monotone" dataKey="sales" name="Revenue" stroke="#00f0ff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSales)" />
+                      <Area type="monotone" dataKey="profit" name="Net Profit" stroke="#d946ef" strokeWidth={2.5} fillOpacity={1} fill="url(#colorProfit)" />
                       <Legend verticalAlign="top" height={36} iconType="circle" />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -833,7 +854,7 @@ export default function Home() {
               </div>
 
               {/* ROW 2 RIGHT: SHIPPING RATIO DONUT (Span 4) */}
-              <div className="lg:col-span-4 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg flex flex-col justify-between">
+              <div className="lg:col-span-4 premium-card rounded-2xl p-6 shadow-lg flex flex-col justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Shipping Performance</h3>
                   <p className="text-xs text-slate-500">Ratio of on-time deliveries to late orders</p>
@@ -874,18 +895,18 @@ export default function Home() {
                 {/* Donut Legend */}
                 <div className="flex justify-around items-center pt-3 border-t border-slate-950 font-mono text-[10px]">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
                     <span className="text-slate-400">On-time ({onTimeOrders})</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-fuchsia-500" />
                     <span className="text-slate-400">Late ({lateOrders})</span>
                   </div>
                 </div>
               </div>
 
               {/* ROW 3: CREDIT LIMIT GROUPS BAR (Span 6) */}
-              <div className="lg:col-span-6 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg">
+              <div className="lg:col-span-6 premium-card rounded-2xl p-6 shadow-lg">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Credit Limit Distribution</h3>
                 <p className="text-xs text-slate-500 mb-6">Customer purchase values aggregated by credit limit groups</p>
 
@@ -902,7 +923,7 @@ export default function Home() {
                       <Bar dataKey="sales" name="Total Sales" fill="#3b82f6" radius={[4, 4, 0, 0]}>
                         {creditLimitData.map((entry, index) => {
                           // Highlight bars differently if needed
-                          const color = activeMetric === 'netProfit' ? '#10b981' : activeMetric === 'costOfSales' ? '#f59e0b' : '#3b82f6';
+                          const color = activeMetric === 'netProfit' ? 'url(#pinkBlue)' : activeMetric === 'costOfSales' ? '#f59e0b' : 'url(#cyanPurple)';
                           return <Cell key={`cell-${index}`} fill={color} fillOpacity={0.8} />;
                         })}
                       </Bar>
@@ -912,7 +933,7 @@ export default function Home() {
               </div>
 
               {/* ROW 3 RIGHT: QUICK STATS TABLE (Span 6) */}
-              <div className="lg:col-span-6 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg flex flex-col justify-between">
+              <div className="lg:col-span-6 premium-card rounded-2xl p-6 shadow-lg flex flex-col justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Monthly Sales Growth Detail</h3>
                   <p className="text-xs text-slate-500">Overview of recent months sorted chronologically</p>
@@ -964,7 +985,7 @@ export default function Home() {
 
               {/* Side Detailed Sales Overview Table */}
               <div className="lg:col-span-4 flex flex-col gap-6">
-                <div className="bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 flex flex-col shadow-lg">
+                <div className="premium-card rounded-2xl p-6 flex flex-col shadow-lg">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5 uppercase font-mono tracking-wider">
                       <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -1016,7 +1037,7 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* Product co-purchasing */}
-              <div className="bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg">
+              <div className="premium-card rounded-2xl p-6 shadow-lg">
                 <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2 font-mono uppercase tracking-wider">
                   <Layers className="w-4 h-4 text-blue-500" />
                   Product Co-Purchasing Pairs
@@ -1052,7 +1073,7 @@ export default function Home() {
               </div>
 
               {/* Late shipping lists */}
-              <div className="bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg">
+              <div className="premium-card rounded-2xl p-6 shadow-lg">
                 <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2 font-mono uppercase tracking-wider">
                   <Truck className="w-4 h-4 text-amber-500" />
                   Late Shipping Orders list
@@ -1105,7 +1126,7 @@ export default function Home() {
 
           {/* TAB 4: RAW TRANSACTIONS DATABASE */}
           {activeTab === 'raw' && (
-            <div className="bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg">
+            <div className="premium-card rounded-2xl p-6 shadow-lg">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
                   Filtered Transaction Database
@@ -1155,7 +1176,7 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-max">
               
               {/* Funnel Analysis (Span 7) */}
-              <div className="lg:col-span-7 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg animate-in fade-in duration-300 flex flex-col justify-between">
+              <div className="lg:col-span-7 premium-card rounded-2xl p-6 shadow-lg animate-in fade-in duration-300 flex flex-col justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Behavioral Funnel Analysis (Phễu hành vi)</h3>
                   <p className="text-xs text-slate-500 mb-4">Drop-offs and conversions from Traffic to Completed Purchases</p>
@@ -1212,7 +1233,7 @@ export default function Home() {
               </div>
 
               {/* Acquisition vs Retention (Span 5) */}
-              <div className="lg:col-span-5 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg flex flex-col justify-between animate-in fade-in duration-300">
+              <div className="lg:col-span-5 premium-card rounded-2xl p-6 shadow-lg flex flex-col justify-between animate-in fade-in duration-300">
                 <div>
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Growth Anatomy (Phân tách tăng trưởng)</h3>
                   <p className="text-xs text-slate-500">Revenue split between New Customer Acquisition and Returning Customer Retention</p>
@@ -1264,7 +1285,7 @@ export default function Home() {
                   </div>
                   <div className="flex flex-col items-center">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <div className="w-2 h-2 rounded-full bg-cyan-400" />
                       <span className="text-slate-400">Returning (Retention)</span>
                     </div>
                     <span className="text-white font-bold">{formatCurrency(returningRevenue)} ({totalSales > 0 ? ((returningRevenue / totalSales) * 100).toFixed(0) : 0}%)</span>
@@ -1283,7 +1304,7 @@ export default function Home() {
               </div>
 
               {/* VIP Customers list (Span 7) */}
-              <div className="lg:col-span-7 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg animate-in fade-in duration-300">
+              <div className="lg:col-span-7 premium-card rounded-2xl p-6 shadow-lg animate-in fade-in duration-300">
                 <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2 font-mono uppercase tracking-wider mb-2">
                   <Users className="w-4 h-4 text-purple-500" />
                   VIP Customer Purchasing Rankings
@@ -1321,7 +1342,7 @@ export default function Home() {
               </div>
 
               {/* Customer Purchase Frequency Bucket Distribution (Span 5) */}
-              <div className="lg:col-span-5 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg flex flex-col justify-between animate-in fade-in duration-300">
+              <div className="lg:col-span-5 premium-card rounded-2xl p-6 shadow-lg flex flex-col justify-between animate-in fade-in duration-300">
                 <div>
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Purchase Frequency Distribution</h3>
                   <p className="text-xs text-slate-500 mb-6">Distribution of customers based on total order count</p>
@@ -1347,7 +1368,7 @@ export default function Home() {
               </div>
 
               {/* DATA QUALITY VALIDATION PANEL (Span 12) */}
-              <div className="lg:col-span-12 bg-[#080d16]/90 border border-slate-900 rounded-2xl p-6 shadow-lg animate-in fade-in duration-300">
+              <div className="lg:col-span-12 premium-card rounded-2xl p-6 shadow-lg animate-in fade-in duration-300">
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
@@ -1357,7 +1378,7 @@ export default function Home() {
                     <p className="text-xs text-slate-500">Real-time database integrity audit logs and validation indicators</p>
                   </div>
                   {auditResults.totalIssues === 0 ? (
-                    <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-bold px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+                    <span className="text-[10px] bg-cyan-400/10 border border-emerald-500/30 text-emerald-500 font-bold px-2 py-0.5 rounded uppercase tracking-wider font-mono">
                       Pass - No issues
                     </span>
                   ) : (
@@ -1375,7 +1396,7 @@ export default function Home() {
                       <span className="text-[10px] text-slate-500">Quantity & prices positive</span>
                     </div>
                     {auditResults.schemaValid ? (
-                      <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
+                      <span className="text-[9px] bg-cyan-400/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
                     ) : (
                       <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded uppercase font-bold">Error</span>
                     )}
@@ -1388,7 +1409,7 @@ export default function Home() {
                       <span className="text-[10px] text-slate-500">Order Dates ISO formatted</span>
                     </div>
                     {auditResults.datesValid ? (
-                      <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
+                      <span className="text-[9px] bg-cyan-400/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
                     ) : (
                       <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded uppercase font-bold">Error</span>
                     )}
@@ -1401,7 +1422,7 @@ export default function Home() {
                       <span className="text-[10px] text-slate-500">Shipped Date &gt;= Order Date</span>
                     </div>
                     {auditResults.shippingValid ? (
-                      <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
+                      <span className="text-[9px] bg-cyan-400/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
                     ) : (
                       <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded uppercase font-bold">Warning</span>
                     )}
@@ -1414,7 +1435,7 @@ export default function Home() {
                       <span className="text-[10px] text-slate-500">Unique order mapping check</span>
                     </div>
                     {auditResults.keysValid ? (
-                      <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
+                      <span className="text-[9px] bg-cyan-400/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
                     ) : (
                       <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded uppercase font-bold">Error</span>
                     )}

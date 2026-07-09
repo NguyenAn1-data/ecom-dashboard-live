@@ -2,8 +2,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020408;
-  --foreground: #f8fafc;
+  --background: #070814;
+  --foreground: #f1f3f9;
 }
 
 @theme inline {
@@ -14,8 +14,33 @@
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(circle at 50% 50%, #15162b 0%, #070814 100%) !important;
   color: var(--foreground);
   font-family: 'Fira Sans', var(--font-geist-sans), sans-serif;
+  min-height: 100vh;
+}
+
+.premium-bg {
+  background: radial-gradient(circle at 50% 50%, #15162b 0%, #070814 100%) !important;
+}
+
+.premium-card {
+  background: rgba(21, 22, 40, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.text-gradient-cyan-purple {
+  background: linear-gradient(135deg, #00f0ff 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-pink-blue {
+  background: linear-gradient(135deg, #d946ef 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 

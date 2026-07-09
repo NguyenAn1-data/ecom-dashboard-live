@@ -294,8 +294,8 @@ export default function DecompositionTree({
   };
 
   return (
-    <div className={`w-full flex flex-col h-full bg-[#05070c] border border-slate-900 rounded-xl p-6 relative select-none transition-all duration-300 ${
-      isFullscreen ? 'fixed inset-0 z-[9999] bg-[#020408] border-none rounded-none w-screen h-screen p-10 overflow-auto' : 'overflow-hidden'
+    <div className={`w-full flex flex-col h-full premium-card rounded-xl p-6 relative select-none transition-all duration-300 ${
+      isFullscreen ? 'fixed inset-0 z-[9999] premium-bg border-none rounded-none w-screen h-screen p-10 overflow-auto' : 'overflow-hidden'
     }`} ref={containerRef}>
       
       {/* Top controls */}
