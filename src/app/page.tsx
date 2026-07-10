@@ -1,166 +1,32 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  ShoppingBag, 
-  Truck, 
-  RefreshCw, 
-  AlertTriangle, 
-  HelpCircle, 
-  FileText, 
-  Layers, 
-  CheckCircle2, 
-  ChevronDown, 
-  Filter, 
-  Maximize2,
-  Globe,
-  Users,
-  CheckSquare
-} from 'lucide-react';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip as ChartTooltip,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  FunnelChart,
-  Funnel,
-  LabelList
-} from 'recharts';
+import { Layers, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
+
 import DecompositionTree from '@/components/DecompositionTree';
 
-// Interfaces
-interface Transaction {
-  orderDate: string;
-  orderNumber: string;
-  quantityOrdered: number;
-  priceEach: number;
-  productName: string;
-  productLine: string;
-  buyPrice: number;
-  city: string;
-  country: string;
-  salesValue: number;
-  costOfSales: number;
-  netProfit: number;
-  customerName: string;
-  customerNumber: string;
-  creditLimitGrp: string;
-  requiredDate: string;
-  shippedDate: string;
-  shippingStatus: string;
-  lateFlag: number;
-}
+// Sub-components
+import KpiCards from '@/components/dashboard/KpiCards';
+import FilterBar from '@/components/dashboard/FilterBar';
+import SetupGuideModal from '@/components/dashboard/SetupGuideModal';
+import SalesTrendChart from '@/components/dashboard/SalesTrendChart';
+import ShippingDonut from '@/components/dashboard/ShippingDonut';
+import CreditLimitChart from '@/components/dashboard/CreditLimitChart';
+import CoPurchasingTable from '@/components/dashboard/CoPurchasingTable';
+import LateShippingTable from '@/components/dashboard/LateShippingTable';
+import MonthlyGrowthTable from '@/components/dashboard/MonthlyGrowthTable';
+import RawTransactionsTable from '@/components/dashboard/RawTransactionsTable';
+import BehavioralFunnel from '@/components/dashboard/BehavioralFunnel';
+import GrowthAnatomyChart from '@/components/dashboard/GrowthAnatomyChart';
+import VipRankingsTable from '@/components/dashboard/VipRankingsTable';
+import PurchaseFrequencyChart from '@/components/dashboard/PurchaseFrequencyChart';
+import DataQualityAudit from '@/components/dashboard/DataQualityAudit';
+import InsightSummaryPanel from '@/components/dashboard/InsightSummaryPanel';
+import ScaleSimulator from '@/components/dashboard/ScaleSimulator';
 
-interface SalesOverviewItem {
-  year: number;
-  month: number;
-  monthName: string;
-  salesValue: number;
-  netProfit: number;
-  costOfSales: number;
-  momPercent: number;
-  ytdSalesValue: number;
-}
-
-interface CoPurchasingItem {
-  product_one: string;
-  product_two: string;
-  count: number;
-}
-
-// ----------------------------------------------------
 // Mock Data fallback
-// ----------------------------------------------------
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    orderDate: '2004-01-02', orderNumber: '10208', quantityOrdered: 46, priceEach: 176.63,
-    productName: '2001 Ferrari Enzo', productLine: 'Classic Cars', buyPrice: 95.59,
-    city: 'Lyon', country: 'France', salesValue: 8124.98, costOfSales: 4397.14, netProfit: 3727.84,
-    customerName: 'Lyon Souvenirs', customerNumber: '256', creditLimitGrp: 'b: Between 75k and 100k',
-    requiredDate: '2004-01-11', shippedDate: '2004-01-04', shippingStatus: 'Shipped', lateFlag: 0
-  },
-  {
-    orderDate: '2004-01-02', orderNumber: '10208', quantityOrdered: 26, priceEach: 128.42,
-    productName: '1969 Corvair Monza', productLine: 'Classic Cars', buyPrice: 89.14,
-    city: 'Lyon', country: 'France', salesValue: 3338.92, costOfSales: 2317.64, netProfit: 1021.28,
-    customerName: 'Lyon Souvenirs', customerNumber: '256', creditLimitGrp: 'b: Between 75k and 100k',
-    requiredDate: '2004-01-11', shippedDate: '2004-01-04', shippingStatus: 'Shipped', lateFlag: 0
-  },
-  {
-    orderDate: '2004-01-02', orderNumber: '10208', quantityOrdered: 20, priceEach: 152.26,
-    productName: '1969 Ford Falcon', productLine: 'Classic Cars', buyPrice: 83.05,
-    city: 'Lyon', country: 'France', salesValue: 3045.20, costOfSales: 1661.00, netProfit: 1384.20,
-    customerName: 'Lyon Souvenirs', customerNumber: '256', creditLimitGrp: 'b: Between 75k and 100k',
-    requiredDate: '2004-01-11', shippedDate: '2004-01-04', shippingStatus: 'Shipped', lateFlag: 0
-  },
-  {
-    orderDate: '2004-01-15', orderNumber: '10210', quantityOrdered: 34, priceEach: 110.15,
-    productName: '1903 Ford Model A', productLine: 'Vintage Cars', buyPrice: 68.30,
-    city: 'San Francisco', country: 'USA', salesValue: 12345.10, costOfSales: 7322.20, netProfit: 5022.90,
-    customerName: 'Reims Collectables', customerNumber: '242', creditLimitGrp: 'c: Between 100k and 150k',
-    requiredDate: '2004-01-22', shippedDate: '2004-01-20', shippingStatus: 'Shipped', lateFlag: 1
-  },
-  {
-    orderDate: '2004-01-15', orderNumber: '10210', quantityOrdered: 40, priceEach: 135.50,
-    productName: '1936 Mercedes-Benz 500K Roadster', productLine: 'Vintage Cars', buyPrice: 86.00,
-    city: 'San Francisco', country: 'USA', salesValue: 18420.00, costOfSales: 11440.00, netProfit: 6980.00,
-    customerName: 'Reims Collectables', customerNumber: '242', creditLimitGrp: 'c: Between 100k and 150k',
-    requiredDate: '2004-01-22', shippedDate: '2004-01-20', shippingStatus: 'Shipped', lateFlag: 1
-  },
-  {
-    orderDate: '2004-02-09', orderNumber: '10220', quantityOrdered: 50, priceEach: 195.00,
-    productName: '1969 Corvair Monza', productLine: 'Classic Cars', buyPrice: 89.14,
-    city: 'Madrid', country: 'Spain', salesValue: 15750.00, costOfSales: 9457.00, netProfit: 6293.00,
-    customerName: 'Auto Canal+ Petit', customerNumber: '406', creditLimitGrp: 'a: Less than 75k',
-    requiredDate: '2004-02-18', shippedDate: '2004-02-12', shippingStatus: 'Shipped', lateFlag: 0
-  },
-  {
-    orderDate: '2004-02-20', orderNumber: '10224', quantityOrdered: 29, priceEach: 180.20,
-    productName: '1982 Lamborghini Diablo', productLine: 'Classic Cars', buyPrice: 93.46,
-    city: 'Melbourne', country: 'Australia', salesValue: 11225.80, costOfSales: 6710.34, netProfit: 4515.46,
-    customerName: 'Australian Collectables, Ltd', customerNumber: '471', creditLimitGrp: 'a: Less than 75k',
-    requiredDate: '2004-02-28', shippedDate: '2004-02-22', shippingStatus: 'Shipped', lateFlag: 0
-  },
-  {
-    orderDate: '2004-03-05', orderNumber: '10230', quantityOrdered: 42, priceEach: 140.00,
-    productName: '1903 Ford Model A', productLine: 'Vintage Cars', buyPrice: 68.30,
-    city: 'Nantes', country: 'France', salesValue: 13880.00, costOfSales: 7868.60, netProfit: 6011.40,
-    customerName: 'Atelier graphique', customerNumber: '103', creditLimitGrp: 'b: Between 75k and 100k',
-    requiredDate: '2004-03-12', shippedDate: '2004-03-09', shippingStatus: 'Shipped', lateFlag: 0
-  },
-  {
-    orderDate: '2004-03-15', orderNumber: '10235', quantityOrdered: 30, priceEach: 95.00,
-    productName: '1982 Lamborghini Diablo', productLine: 'Classic Cars', buyPrice: 93.46,
-    city: 'Paris', country: 'France', salesValue: 10850.00, costOfSales: 6803.80, netProfit: 4046.20,
-    customerName: 'La Rochelle Gifts', customerNumber: '121', creditLimitGrp: 'c: Between 100k and 150k',
-    requiredDate: '2004-03-22', shippedDate: '2004-03-24', shippingStatus: 'Shipped', lateFlag: 1
-  },
-  {
-    orderDate: '2004-04-10', orderNumber: '10240', quantityOrdered: 45, priceEach: 160.00,
-    productName: '2001 Ferrari Enzo', productLine: 'Classic Cars', buyPrice: 95.59,
-    city: 'Singapore', country: 'Singapore', salesValue: 17200.00, costOfSales: 11301.55, netProfit: 5898.45,
-    customerName: 'Mini Caravy', customerNumber: '480', creditLimitGrp: 'a: Less than 75k',
-    requiredDate: '2004-04-18', shippedDate: '2004-04-14', shippingStatus: 'Shipped', lateFlag: 0
-  }
-];
-
-const MOCK_CO_PURCHASE: CoPurchasingItem[] = [
-  { product_one: 'Classic Cars', product_two: 'Vintage Cars', count: 42 },
-  { product_one: 'Classic Cars', product_two: 'Motorcycles', count: 28 },
-  { product_one: 'Trucks and Buses', product_two: 'Vintage Cars', count: 19 },
-  { product_one: 'Classic Cars', product_two: 'Planes', count: 12 },
-  { product_one: 'Vintage Cars', product_two: 'Ships', count: 8 }
-];
+import { MOCK_TRANSACTIONS, MOCK_CO_PURCHASE } from '@/components/dashboard/mockData';
+import { Transaction, CoPurchasingItem } from '@/components/dashboard/types';
 
 export default function Home() {
   // Master transaction state
@@ -261,6 +127,62 @@ export default function Home() {
   const onTimeOrders = totalOrders - lateOrders;
   const lateShippingRate = totalOrders > 0 ? (lateOrders / totalOrders) * 100 : 0;
 
+  // Late shipping revenue impact
+  const lateShippingRevenue = React.useMemo(() => {
+    const lateOrderNumbers = new Set<string>();
+    filteredTransactions.forEach(t => {
+      if (t.lateFlag === 1) lateOrderNumbers.add(t.orderNumber);
+    });
+    return filteredTransactions
+      .filter(t => lateOrderNumbers.has(t.orderNumber))
+      .reduce((sum, t) => sum + t.salesValue, 0);
+  }, [filteredTransactions]);
+
+  // Country metrics for insights
+  const countryMetrics = React.useMemo(() => {
+    const map = new Map<string, { revenue: number; profit: number }>();
+    filteredTransactions.forEach(t => {
+      if (!map.has(t.country)) map.set(t.country, { revenue: 0, profit: 0 });
+      const m = map.get(t.country)!;
+      m.revenue += t.salesValue;
+      m.profit += t.netProfit;
+    });
+    return Array.from(map.entries())
+      .map(([name, data]) => ({
+        name,
+        revenue: data.revenue,
+        share: totalSales > 0 ? (data.revenue / totalSales) * 100 : 0,
+        margin: data.revenue > 0 ? (data.profit / data.revenue) * 100 : 0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+  }, [filteredTransactions, totalSales]);
+
+  // Product line metrics for insights and scale simulator
+  const productLineMetrics = React.useMemo(() => {
+    const map = new Map<string, { revenue: number; profit: number }>();
+    filteredTransactions.forEach(t => {
+      if (!map.has(t.productLine)) map.set(t.productLine, { revenue: 0, profit: 0 });
+      const m = map.get(t.productLine)!;
+      m.revenue += t.salesValue;
+      m.profit += t.netProfit;
+    });
+    return Array.from(map.entries())
+      .map(([name, data]) => ({
+        name,
+        revenue: data.revenue,
+        profit: data.profit,
+        margin: data.revenue > 0 ? (data.profit / data.revenue) * 100 : 0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+  }, [filteredTransactions]);
+
+  // Top co-purchase pair for insight
+  const topCoPurchasePair = React.useMemo(() => {
+    if (coPurchasingList.length === 0) return null;
+    const top = coPurchasingList[0];
+    return { pair: `${top.product_one} & ${top.product_two}`, count: top.count };
+  }, [coPurchasingList]);
+
   // Format currency helper
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -270,10 +192,6 @@ export default function Home() {
     }).format(val);
   };
 
-  // ----------------------------------------------------
-  // Recharts Chart Data Processing
-  // ----------------------------------------------------
-  
   // 1. Monthly Trend Data (Revenue vs Net Profit)
   const getMonthlyTrendData = () => {
     const monthlyAgg: { [key: string]: { dateStr: string; year: number; month: number; monthName: string; sales: number; profit: number; cost: number } } = {};
@@ -349,14 +267,12 @@ export default function Home() {
       if (!limits[grp]) {
         limits[grp] = { count: 0, sales: 0 };
       }
-      // Count unique customers
       limits[grp].count += 1;
       limits[grp].sales += t.salesValue;
     });
 
     return Object.entries(limits)
       .map(([name, data]) => ({
-        // Clean group label (e.g. 'a: Less than 75k' -> 'Less than 75k')
         name: name.includes(':') ? name.split(':')[1].trim() : name,
         customers: data.count,
         sales: data.sales,
@@ -366,10 +282,6 @@ export default function Home() {
   };
 
   const creditLimitData = getCreditLimitData();
-
-  // ----------------------------------------------------
-  // 4. Advanced Behavioral & Growth Analytics Calculations
-  // ----------------------------------------------------
 
   // Compute the first order date for every customer in the master dataset
   const customerFirstOrderDate = React.useMemo(() => {
@@ -423,7 +335,6 @@ export default function Home() {
       aov: data.orders.size > 0 ? data.sales / data.orders.size : 0
     }));
 
-    // Frequency buckets
     let single = 0;
     let double = 0;
     let loyal = 0;
@@ -434,7 +345,7 @@ export default function Home() {
     });
 
     return {
-      customerList: customerList.sort((a, b) => b.salesTotal - a.salesTotal), // VIPs first
+      customerList: customerList.sort((a, b) => b.salesTotal - a.salesTotal),
       frequencyBucketsData: [
         { name: '1 Order (Single)', count: single, color: 'url(#cyanPurpleHoriz)' },
         { name: '2 Orders (Repeat)', count: double, color: '#00f0ff' },
@@ -476,7 +387,7 @@ export default function Home() {
 
   const globalAOV = totalOrders > 0 ? totalSales / totalOrders : 0;
 
-  // E-commerce behavioral funnel metrics back-calculated from actual purchases with Lost Revenue Opportunity
+  // E-commerce behavioral funnel metrics
   const funnelData = React.useMemo(() => {
     const purchases = totalOrders;
     const checkouts = Math.round(purchases * 1.43);
@@ -565,80 +476,22 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Global Filter Selectors */}
-        <div className="flex flex-wrap items-center gap-3">
-          
-          {/* Country Selector */}
-          <div className="flex items-center gap-2 bg-[#0c1220] border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs">
-            <Globe className="w-3.5 h-3.5 text-slate-400" />
-            <select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-              className="bg-transparent text-slate-200 border-none outline-none font-bold cursor-pointer pr-1"
-            >
-              <option value="All">All Countries</option>
-              {countries.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Product Line Selector */}
-          <div className="flex items-center gap-2 bg-[#0c1220] border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <select
-              value={selectedProductLine}
-              onChange={(e) => setSelectedProductLine(e.target.value)}
-              className="bg-transparent text-slate-200 border-none outline-none font-bold cursor-pointer pr-1"
-            >
-              <option value="All">All Product Lines</option>
-              {productLines.map(pl => (
-                <option key={pl} value={pl}>{pl}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Setup drawer toggle */}
-          <button
-            onClick={() => setShowSetupGuide(!showSetupGuide)}
-            className="px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all flex items-center gap-1.5"
-          >
-            <HelpCircle className="w-4 h-4" />
-            Setup API
-          </button>
-          
-          <button
-            onClick={() => fetchData(false)}
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)] animate-pulse"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Sync
-          </button>
-        </div>
+        <FilterBar
+          selectedCountry={selectedCountry}
+          setSelectedCountry={setSelectedCountry}
+          countries={countries}
+          selectedProductLine={selectedProductLine}
+          setSelectedProductLine={setSelectedProductLine}
+          productLines={productLines}
+          showSetupGuide={showSetupGuide}
+          setShowSetupGuide={setShowSetupGuide}
+          loading={loading}
+          fetchData={fetchData}
+        />
       </header>
 
       {/* SETUP GUIDE DRAWER */}
-      {showSetupGuide && (
-        <section className="bg-[#0b101c] border-b border-slate-800 p-6 px-8 animate-in slide-in-from-top duration-300">
-          <div className="max-w-4xl">
-            <h2 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-400" />
-              Google Sheets Real-time Sync Configuration
-            </h2>
-            <p className="text-xs text-slate-400 mb-2">
-              Your Google Cloud Service Account credentials have been configured inside [.env.local](file:///d:/e-com%20example/dashboard/.env.local).
-              Simply share your Google Sheet with the Service Account email below as an <strong>Editor</strong>:
-            </p>
-            <div className="bg-[#050810] border border-slate-900 p-2.5 rounded font-mono text-[11px] text-blue-400 select-all max-w-fit mb-4">
-              thiennhien1@ecom-example-501902.iam.gserviceaccount.com
-            </div>
-            <p className="text-xs text-slate-400 leading-normal">
-              Then run: <code className="text-slate-300 font-mono bg-slate-950 px-1 py-0.5 rounded">python dashboard/scripts/upload_sheets.py</code> in your console to sync.
-            </p>
-          </div>
-        </section>
-      )}
+      <SetupGuideModal showSetupGuide={showSetupGuide} />
 
       {/* ERROR / API UNCONFIGURED SCREEN */}
       {error && !isDemoMode && (
@@ -737,247 +590,64 @@ export default function Home() {
           {/* TAB 1: OVERALL VISUAL ANALYTICS (Charts & KPIs) */}
           {activeTab === 'dashboard' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-max">
-              
-              {/* KPI 1: REVENUE CARD (Span 3) */}
-              <div className="lg:col-span-3 premium-card rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total Revenue</span>
-                    <h3 className="text-2xl font-bold font-mono text-white mt-1 group-hover:text-blue-400 transition-colors">
-                      {formatCurrency(totalSales)}
-                    </h3>
-                  </div>
-                  <div className="bg-blue-600/10 border border-blue-500/20 p-2.5 rounded-xl text-blue-500">
-                    <DollarSign className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-900/50 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Based on active filters</span>
-                  <span className="font-mono text-blue-400 font-bold">{filteredTransactions.length} items</span>
-                </div>
+              <KpiCards
+                totalSales={totalSales}
+                totalCost={totalCost}
+                totalProfit={totalProfit}
+                profitMargin={profitMargin}
+                lateShippingRate={lateShippingRate}
+                lateOrders={lateOrders}
+                totalOrders={totalOrders}
+                filteredTransactionsLength={filteredTransactions.length}
+                lateShippingRevenue={lateShippingRevenue}
+                topMarketShare={countryMetrics.length > 0 ? { name: countryMetrics[0].name, share: countryMetrics[0].share } : null}
+                formatCurrency={formatCurrency}
+              />
+
+              <InsightSummaryPanel
+                totalSales={totalSales}
+                totalProfit={totalProfit}
+                profitMargin={profitMargin}
+                lateShippingRate={lateShippingRate}
+                lateOrders={lateOrders}
+                totalOrders={totalOrders}
+                lateShippingRevenue={lateShippingRevenue}
+                productLineMetrics={productLineMetrics}
+                countryMetrics={countryMetrics}
+                returningRevenuePercent={totalSales > 0 ? (returningRevenue / totalSales) * 100 : 0}
+                topCoPurchasePair={topCoPurchasePair}
+                formatCurrency={formatCurrency}
+              />
+
+              <ScaleSimulator
+                productLineMetrics={productLineMetrics}
+                formatCurrency={formatCurrency}
+              />
+
+              <SalesTrendChart monthlyTrendData={monthlyTrendData} />
+
+              <ShippingDonut
+                shippingDonutData={shippingDonutData}
+                lateShippingRate={lateShippingRate}
+                onTimeOrders={onTimeOrders}
+                lateOrders={lateOrders}
+              />
+
+              <CreditLimitChart creditLimitData={creditLimitData} activeMetric={activeMetric} />
+
+              <div className="lg:col-span-6">
+                <MonthlyGrowthTable
+                  monthlyTrendData={monthlyTrendData}
+                  formatCurrency={formatCurrency}
+                  limit={4}
+                />
               </div>
-
-              {/* KPI 2: COST OF SALES CARD (Span 3) */}
-              <div className="lg:col-span-3 premium-card rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Cost of Sales</span>
-                    <h3 className="text-2xl font-bold font-mono text-slate-100 mt-1 group-hover:text-amber-400 transition-colors">
-                      {formatCurrency(totalCost)}
-                    </h3>
-                  </div>
-                  <div className="bg-amber-600/10 border border-amber-500/20 p-2.5 rounded-xl text-amber-500">
-                    <ShoppingBag className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-900/50 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Inventory cost totals</span>
-                  <span className="font-mono text-amber-400 font-bold">COGS</span>
-                </div>
-              </div>
-
-              {/* KPI 3: NET PROFIT CARD (Span 3) */}
-              <div className="lg:col-span-3 premium-card rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Net Profit</span>
-                    <h3 className="text-2xl font-bold font-mono text-emerald-400 mt-1 group-hover:text-emerald-300 transition-colors shadow-emerald-950">
-                      {formatCurrency(totalProfit)}
-                    </h3>
-                  </div>
-                  <div className="bg-emerald-600/10 border border-emerald-500/20 p-2.5 rounded-xl text-emerald-500">
-                    <TrendingUp className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-900/50 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Margins YTD</span>
-                  <span className="font-mono text-emerald-400 font-bold">
-                    {profitMargin.toFixed(1)}% Margin
-                  </span>
-                </div>
-              </div>
-
-              {/* KPI 4: LATE SHIPPING CARD (Span 3) */}
-              <div className="lg:col-span-3 premium-card rounded-2xl p-6 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 group shadow-lg">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Late Shipping Rate</span>
-                    <h3 className="text-2xl font-bold font-mono text-amber-500 mt-1 group-hover:text-amber-400 transition-colors">
-                      {lateShippingRate.toFixed(1)}%
-                    </h3>
-                  </div>
-                  <div className="bg-amber-600/10 border border-amber-500/20 p-2.5 rounded-xl text-amber-500">
-                    <Truck className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-900/50 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Delayed shipping orders</span>
-                  <span className="font-mono text-amber-500 font-bold">{lateOrders} / {totalOrders}</span>
-                </div>
-              </div>
-
-              {/* ROW 2: MAIN CHART - REVENUE TREND (Span 8) */}
-              <div className="lg:col-span-8 premium-card rounded-2xl p-6 shadow-lg">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Monthly Revenue & Profit Growth</h3>
-                    <p className="text-xs text-slate-500">Compare gross sales values to net earnings margins</p>
-                  </div>
-                  <div className="flex bg-[#05070c] border border-slate-900 p-0.5 rounded text-[10px] font-mono">
-                    <span className="px-2 py-1 bg-blue-600/10 text-blue-400 rounded">Area View</span>
-                  </div>
-                </div>
-
-                <div className="w-full h-[320px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.4}/>
-                          <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
-                        </linearGradient>
-                        <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#d946ef" stopOpacity={0.4}/>
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="dateStr" stroke="#475569" fontSize={10} tickLine={false} />
-                      <YAxis stroke="#475569" fontSize={10} tickLine={false} />
-                      <ChartTooltip
-                        contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
-                        labelStyle={{ color: '#fff', fontWeight: 'bold', fontSize: 11 }}
-                        itemStyle={{ fontSize: 11 }}
-                      />
-                      <Area type="monotone" dataKey="sales" name="Revenue" stroke="#00f0ff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSales)" />
-                      <Area type="monotone" dataKey="profit" name="Net Profit" stroke="#d946ef" strokeWidth={2.5} fillOpacity={1} fill="url(#colorProfit)" />
-                      <Legend verticalAlign="top" height={36} iconType="circle" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* ROW 2 RIGHT: SHIPPING RATIO DONUT (Span 4) */}
-              <div className="lg:col-span-4 premium-card rounded-2xl p-6 shadow-lg flex flex-col justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Shipping Performance</h3>
-                  <p className="text-xs text-slate-500">Ratio of on-time deliveries to late orders</p>
-                </div>
-
-                <div className="w-full h-[220px] relative flex items-center justify-center my-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={shippingDonutData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {shippingDonutData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip
-                        contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
-                        itemStyle={{ fontSize: 11 }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  
-                  {/* Center percentage indicator */}
-                  <div className="absolute flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold font-mono text-slate-100">
-                      {(100 - lateShippingRate).toFixed(0)}%
-                    </span>
-                    <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">On-Time</span>
-                  </div>
-                </div>
-
-                {/* Donut Legend */}
-                <div className="flex justify-around items-center pt-3 border-t border-slate-950 font-mono text-[10px]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-                    <span className="text-slate-400">On-time ({onTimeOrders})</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-fuchsia-500" />
-                    <span className="text-slate-400">Late ({lateOrders})</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ROW 3: CREDIT LIMIT GROUPS BAR (Span 6) */}
-              <div className="lg:col-span-6 premium-card rounded-2xl p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Credit Limit Distribution</h3>
-                <p className="text-xs text-slate-500 mb-6">Customer purchase values aggregated by credit limit groups</p>
-
-                <div className="w-full h-[240px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={creditLimitData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <XAxis dataKey="name" stroke="#475569" fontSize={9} tickLine={false} />
-                      <YAxis stroke="#475569" fontSize={9} tickLine={false} />
-                      <ChartTooltip
-                        contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
-                        labelStyle={{ color: '#fff', fontSize: 10 }}
-                        itemStyle={{ fontSize: 11 }}
-                      />
-                      <Bar dataKey="sales" name="Total Sales" fill="#3b82f6" radius={[4, 4, 0, 0]}>
-                        {creditLimitData.map((entry, index) => {
-                          // Highlight bars differently if needed
-                          const color = activeMetric === 'netProfit' ? 'url(#pinkBlue)' : activeMetric === 'costOfSales' ? '#f59e0b' : 'url(#cyanPurple)';
-                          return <Cell key={`cell-${index}`} fill={color} fillOpacity={0.8} />;
-                        })}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* ROW 3 RIGHT: QUICK STATS TABLE (Span 6) */}
-              <div className="lg:col-span-6 premium-card rounded-2xl p-6 shadow-lg flex flex-col justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Monthly Sales Growth Detail</h3>
-                  <p className="text-xs text-slate-500">Overview of recent months sorted chronologically</p>
-                </div>
-
-                <div className="overflow-x-auto mt-4 max-h-[220px]">
-                  <table className="w-full text-left text-xs text-slate-400 font-mono">
-                    <thead className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-slate-950 sticky top-0 bg-[#080d16] py-2">
-                      <tr>
-                        <th className="py-2.5">Month</th>
-                        <th className="py-2.5 text-right">Sales Value</th>
-                        <th className="py-2.5 text-right">MoM%</th>
-                        <th className="py-2.5 text-right">Sales YTD</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-950/40">
-                      {monthlyTrendData.slice().reverse().slice(0, 4).map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-900/20">
-                          <td className="py-2.5 text-slate-200 font-semibold">{item.dateStr}</td>
-                          <td className="py-2.5 text-right font-bold text-slate-100">{formatCurrency(item.sales)}</td>
-                          <td className={`py-2.5 text-right font-bold ${
-                            item.momPercent > 0 ? 'text-emerald-500' : item.momPercent < 0 ? 'text-rose-500' : 'text-slate-500'
-                          }`}>
-                            {item.momPercent !== 0 ? `${item.momPercent > 0 ? '+' : ''}${item.momPercent.toFixed(1)}%` : '0.0%'}
-                          </td>
-                          <td className="py-2.5 text-right text-slate-400">{formatCurrency(item.ytdSales)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
             </div>
           )}
 
           {/* TAB 2: INTERACTIVE DECOMPOSITION TREE */}
           {activeTab === 'tree' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              
-              {/* Decomposition Tree Panel */}
               <div className="lg:col-span-8 flex flex-col gap-6">
                 <DecompositionTree 
                   transactions={filteredTransactions} 
@@ -986,469 +656,60 @@ export default function Home() {
                 />
               </div>
 
-              {/* Side Detailed Sales Overview Table */}
               <div className="lg:col-span-4 flex flex-col gap-6">
-                <div className="premium-card rounded-2xl p-6 flex flex-col shadow-lg">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5 uppercase font-mono tracking-wider">
-                      <TrendingUp className="w-4 h-4 text-emerald-500" />
-                      Sales Overview
-                    </h3>
-                    <span className="text-[10px] text-slate-500 font-mono">MoM & YTD Track</span>
-                  </div>
-
-                  <div className="overflow-x-auto max-h-[480px]">
-                    <table className="w-full text-left text-xs text-slate-400 font-mono">
-                      <thead className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-slate-950 sticky top-0 bg-[#080d16] py-2">
-                        <tr>
-                          <th className="py-2.5">Year</th>
-                          <th className="py-2.5">Month</th>
-                          <th className="py-2.5 text-right">Sales Value</th>
-                          <th className="py-2.5 text-right">MoM%</th>
-                          <th className="py-2.5 text-right">Sales YTD</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-950/40">
-                        {monthlyTrendData.slice().reverse().map((item, idx) => (
-                          <tr key={idx} className="hover:bg-slate-900/30 transition-colors">
-                            <td className="py-3 text-slate-400">{item.year}</td>
-                            <td className="py-3 font-semibold text-slate-200">{item.monthName}</td>
-                            <td className="py-3 text-right font-bold text-slate-100">
-                              {formatCurrency(item.sales)}
-                            </td>
-                            <td className={`py-3 text-right font-bold ${
-                              item.momPercent > 0 ? 'text-emerald-500' : item.momPercent < 0 ? 'text-rose-500' : 'text-slate-500'
-                            }`}>
-                              {item.momPercent !== 0 ? `${item.momPercent > 0 ? '+' : ''}${item.momPercent.toFixed(1)}%` : '0.0%'}
-                            </td>
-                            <td className="py-3 text-right font-semibold text-slate-400">
-                              {formatCurrency(item.ytdSales)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <MonthlyGrowthTable
+                  monthlyTrendData={monthlyTrendData}
+                  formatCurrency={formatCurrency}
+                  title="Sales Overview"
+                  subtitle="MoM & YTD Track"
+                  showYearAndMonthName={true}
+                />
               </div>
-
             </div>
           )}
 
           {/* TAB 3: CO-PURCHASING & SHIPPING STATUS */}
           {activeTab === 'copurchase' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
-              {/* Product co-purchasing */}
-              <div className="premium-card rounded-2xl p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2 font-mono uppercase tracking-wider">
-                  <Layers className="w-4 h-4 text-blue-500" />
-                  Product Co-Purchasing Pairs
-                </h3>
-                <p className="text-xs text-slate-400 mb-4 font-mono">
-                  List of product lines combined in the same order. High counts reveal cross-sell opportunities.
-                </p>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-400 font-mono">
-                    <thead className="text-[10px] text-slate-500 uppercase border-b border-slate-950 py-2">
-                      <tr>
-                        <th className="py-2.5">Product Line A</th>
-                        <th className="py-2.5">Product Line B</th>
-                        <th className="py-2.5 text-center">Frequency (Orders Count)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-950/40">
-                      {coPurchasingList.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-900/30">
-                          <td className="py-3 text-slate-200 font-bold">{item.product_one}</td>
-                          <td className="py-3 text-slate-200 font-bold">{item.product_two}</td>
-                          <td className="py-3 text-center">
-                            <span className="bg-blue-900/20 border border-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">
-                              {item.count} orders
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Late shipping lists */}
-              <div className="premium-card rounded-2xl p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2 font-mono uppercase tracking-wider">
-                  <Truck className="w-4 h-4 text-amber-500" />
-                  Late Shipping Orders list
-                </h3>
-                <p className="text-xs text-slate-400 mb-4 font-mono">
-                  Detailed list of orders marked LATE (where actual shipping date exceeded required date).
-                </p>
-
-                <div className="overflow-x-auto max-h-[350px]">
-                  <table className="w-full text-left text-xs text-slate-400 font-mono">
-                    <thead className="text-[10px] text-slate-500 uppercase border-b border-slate-950 py-2">
-                      <tr>
-                        <th className="py-2.5">Order</th>
-                        <th className="py-2.5">Customer Name</th>
-                        <th className="py-2.5">Required Date</th>
-                        <th className="py-2.5">Shipped Date</th>
-                        <th className="py-2.5 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-950/40">
-                      {filteredTransactions
-                        .filter(t => t.lateFlag === 1)
-                        .map((item, idx) => (
-                          <tr key={idx} className="hover:bg-rose-950/10">
-                            <td className="py-3 text-slate-300">#{item.orderNumber}</td>
-                            <td className="py-3 text-slate-200 font-semibold">{item.customerName}</td>
-                            <td className="py-3 text-slate-400">{item.requiredDate}</td>
-                            <td className="py-3 text-rose-400 font-semibold">{item.shippedDate}</td>
-                            <td className="py-3 text-right">
-                              <span className="text-[9px] bg-rose-500/10 border border-rose-500/30 text-rose-500 px-2 py-0.5 rounded font-bold uppercase">
-                                LATE
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      {filteredTransactions.filter(t => t.lateFlag === 1).length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="py-6 text-center text-slate-600">
-                            No late shipments found for these filters.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
+              <CoPurchasingTable coPurchasingList={coPurchasingList} />
+              <LateShippingTable filteredTransactions={filteredTransactions} />
             </div>
           )}
 
           {/* TAB 4: RAW TRANSACTIONS DATABASE */}
           {activeTab === 'raw' && (
-            <div className="premium-card rounded-2xl p-6 shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-                  Filtered Transaction Database
-                </h3>
-                <span className="text-xs text-slate-500 font-mono">Showing first 50 matched rows</span>
-              </div>
-              
-              <div className="overflow-x-auto max-h-[500px]">
-                <table className="w-full text-left text-xs text-slate-400 font-mono">
-                  <thead className="text-[10px] text-slate-500 uppercase border-b border-slate-950 py-2 sticky top-0 bg-[#080d16] z-10">
-                    <tr>
-                      <th className="py-2.5">Date</th>
-                      <th className="py-2.5">Order</th>
-                      <th className="py-2.5">Customer</th>
-                      <th className="py-2.5">Country</th>
-                      <th className="py-2.5">Product Line</th>
-                      <th className="py-2.5">Product Name</th>
-                      <th className="py-2.5 text-right">Sales Value</th>
-                      <th className="py-2.5 text-right">Cost</th>
-                      <th className="py-2.5 text-right">Net Profit</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-950/40">
-                    {filteredTransactions.slice(0, 50).map((t, idx) => (
-                      <tr key={idx} className="hover:bg-slate-900/30">
-                        <td className="py-2.5">{t.orderDate}</td>
-                        <td className="py-2.5">#{t.orderNumber}</td>
-                        <td className="py-2.5 text-slate-300 font-semibold truncate max-w-[150px]" title={t.customerName}>{t.customerName}</td>
-                        <td className="py-2.5 text-slate-400">{t.country}</td>
-                        <td className="py-2.5 text-slate-400">{t.productLine}</td>
-                        <td className="py-2.5 text-slate-300 truncate max-w-[150px]" title={t.productName}>{t.productName}</td>
-                        <td className="py-2.5 text-right text-slate-200 font-bold">{formatCurrency(t.salesValue)}</td>
-                        <td className="py-2.5 text-right text-slate-400">{formatCurrency(t.costOfSales)}</td>
-                        <td className={`py-2.5 text-right font-bold ${t.netProfit >= 0 ? 'text-emerald-400' : 'text-rose-500'}`}>
-                          {formatCurrency(t.netProfit)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <RawTransactionsTable
+              filteredTransactions={filteredTransactions}
+              formatCurrency={formatCurrency}
+            />
           )}
 
-          {/* TAB 4: ADVANCED BEHAVIORAL & GROWTH ANALYTICS */}
+          {/* TAB 5: ADVANCED BEHAVIORAL & GROWTH ANALYTICS */}
           {activeTab === 'growth' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-max">
-              
-              {/* Funnel Analysis (Span 7) */}
-              <div className="lg:col-span-7 premium-card rounded-2xl p-6 shadow-lg animate-in fade-in duration-300 flex flex-col justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Behavioral Funnel Analysis (Phễu hành vi)</h3>
-                  <p className="text-xs text-slate-500 mb-4">Drop-offs and conversions from Traffic to Completed Purchases</p>
-                  
-                  <div className="w-full h-[240px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <FunnelChart margin={{ top: 10, right: 120, left: 120, bottom: 10 }}>
-                        <ChartTooltip
-                          contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
-                          itemStyle={{ fontSize: 11 }}
-                        />
-                        <Funnel
-                          dataKey="value"
-                          data={funnelData}
-                          isAnimationActive
-                        >
-                          <LabelList position="right" fill="#94a3b8" stroke="none" dataKey="name" fontSize={9} />
-                          {funnelData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.85} />
-                          ))}
-                        </Funnel>
-                      </FunnelChart>
-                    </ResponsiveContainer>
-                  </div>
+              <BehavioralFunnel
+                funnelData={funnelData}
+                globalAOV={globalAOV}
+                formatCurrency={formatCurrency}
+              />
 
-                  <div className="grid grid-cols-5 gap-2 text-center font-mono mt-2 text-[9px] pt-3 border-t border-slate-950">
-                    {funnelData.map((item, idx) => (
-                      <div key={idx} className="flex flex-col items-center">
-                        <span className="text-slate-500">{item.name.split('. ')[1]}</span>
-                        <span className="text-slate-200 font-bold mt-0.5">{item.value.toLocaleString()}</span>
-                        <span className="text-blue-400 font-semibold mt-0.5">({item.percent}%)</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <GrowthAnatomyChart
+                acquisitionVsRetentionData={acquisitionVsRetentionData}
+                totalSales={totalSales}
+                returningRevenue={returningRevenue}
+                newRevenue={newRevenue}
+                avgDaysBetweenOrders={avgDaysBetweenOrders}
+                formatCurrency={formatCurrency}
+              />
 
-                <div className="mt-4 pt-4 border-t border-slate-950/80">
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Opportunity Loss Analysis (Thất thoát doanh thu ước tính)</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
-                    <div className="bg-[#050810]/60 p-2.5 rounded-lg border border-slate-950 flex flex-col justify-between">
-                      <span className="text-[9px] text-slate-500 uppercase font-bold">Cart Abandonment Loss</span>
-                      <span className="text-rose-400 font-bold mt-1">-{formatCurrency((funnelData[2].value - funnelData[3].value) * globalAOV)}</span>
-                      <span className="text-[8px] text-slate-500 mt-0.5">Dropped at Cart stage</span>
-                    </div>
-                    <div className="bg-[#050810]/60 p-2.5 rounded-lg border border-slate-950 flex flex-col justify-between">
-                      <span className="text-[9px] text-slate-500 uppercase font-bold">Checkout Abandonment</span>
-                      <span className="text-rose-400 font-bold mt-1">-{formatCurrency((funnelData[3].value - funnelData[4].value) * globalAOV)}</span>
-                      <span className="text-[8px] text-slate-500 mt-0.5">Abandoned at Checkout</span>
-                    </div>
-                    <div className="bg-[#050810]/60 p-2.5 rounded-lg border border-slate-950 flex flex-col justify-between">
-                      <span className="text-[9px] text-slate-500 uppercase font-bold">Total Funnel Leakage</span>
-                      <span className="text-rose-500 font-bold mt-1">-{formatCurrency((funnelData[0].value - funnelData[4].value) * globalAOV)}</span>
-                      <span className="text-[8px] text-slate-500 mt-0.5">Total funnel drop loss</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <VipRankingsTable
+                customerList={customerMetrics.customerList}
+                formatCurrency={formatCurrency}
+              />
 
-              {/* Acquisition vs Retention (Span 5) */}
-              <div className="lg:col-span-5 premium-card rounded-2xl p-6 shadow-lg flex flex-col justify-between animate-in fade-in duration-300">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Growth Anatomy (Phân tách tăng trưởng)</h3>
-                  <p className="text-xs text-slate-500">Revenue split between New Customer Acquisition and Returning Customer Retention</p>
-                </div>
+              <PurchaseFrequencyChart frequencyBucketsData={customerMetrics.frequencyBucketsData} />
 
-                <div className="w-full h-[220px] relative flex items-center justify-center my-4">
-                  {acquisitionVsRetentionData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={acquisitionVsRetentionData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {acquisitionVsRetentionData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <ChartTooltip
-                          contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
-                          itemStyle={{ fontSize: 11 }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <span className="text-xs text-slate-600">No data available for filters</span>
-                  )}
-                  
-                  {/* Center metric summary */}
-                  <div className="absolute flex flex-col items-center justify-center">
-                    <span className="text-lg font-bold font-mono text-emerald-400">
-                      {totalSales > 0 ? `${((returningRevenue / totalSales) * 100).toFixed(0)}%` : '0%'}
-                    </span>
-                    <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold">Retention Rev</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-around items-center pt-3 border-t border-slate-950 font-mono text-[10px]">
-                  <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      <span className="text-slate-400">New (Acquisition)</span>
-                    </div>
-                    <span className="text-white font-bold">{formatCurrency(newRevenue)} ({totalSales > 0 ? ((newRevenue / totalSales) * 100).toFixed(0) : 0}%)</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                      <span className="text-slate-400">Returning (Retention)</span>
-                    </div>
-                    <span className="text-white font-bold">{formatCurrency(returningRevenue)} ({totalSales > 0 ? ((returningRevenue / totalSales) * 100).toFixed(0) : 0}%)</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-950/80 flex items-center justify-between text-xs font-mono">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-500 uppercase font-bold">Avg Days Between Orders</span>
-                    <span className="text-blue-400 font-bold mt-0.5">{avgDaysBetweenOrders} Days</span>
-                  </div>
-                  <div className="text-[9px] text-slate-500 text-right">
-                    <span>Average repeat purchase interval</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* VIP Customers list (Span 7) */}
-              <div className="lg:col-span-7 premium-card rounded-2xl p-6 shadow-lg animate-in fade-in duration-300">
-                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2 font-mono uppercase tracking-wider mb-2">
-                  <Users className="w-4 h-4 text-purple-500" />
-                  VIP Customer Purchasing Rankings
-                </h3>
-                <p className="text-xs text-slate-400 mb-4 font-mono">
-                  Ranked by cumulative purchase value, average order value (AOV) and purchase frequency.
-                </p>
-
-                <div className="overflow-x-auto max-h-[280px]">
-                  <table className="w-full text-left text-xs text-slate-400 font-mono">
-                    <thead className="text-[10px] text-slate-500 uppercase border-b border-slate-950 py-2 sticky top-0 bg-[#080d16]">
-                      <tr>
-                        <th className="py-2.5">Customer Name</th>
-                        <th className="py-2.5 text-center">Orders Count</th>
-                        <th className="py-2.5 text-right">Avg AOV</th>
-                        <th className="py-2.5 text-right">Sales Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-950/40">
-                      {customerMetrics.customerList.slice(0, 5).map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-900/30">
-                          <td className="py-2.5 text-slate-200 font-semibold">{item.name}</td>
-                          <td className="py-2.5 text-center">
-                            <span className="bg-purple-900/20 border border-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-bold">
-                              {item.ordersCount} orders
-                            </span>
-                          </td>
-                          <td className="py-2.5 text-right text-slate-300 font-bold">{formatCurrency(item.aov)}</td>
-                          <td className="py-2.5 text-right text-slate-100 font-bold">{formatCurrency(item.salesTotal)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Customer Purchase Frequency Bucket Distribution (Span 5) */}
-              <div className="lg:col-span-5 premium-card rounded-2xl p-6 shadow-lg flex flex-col justify-between animate-in fade-in duration-300">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono mb-2">Purchase Frequency Distribution</h3>
-                  <p className="text-xs text-slate-500 mb-6">Distribution of customers based on total order count</p>
-                </div>
-
-                <div className="w-full h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={customerMetrics.frequencyBucketsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <XAxis dataKey="name" stroke="#475569" fontSize={9} tickLine={false} />
-                      <YAxis stroke="#475569" fontSize={9} tickLine={false} />
-                      <ChartTooltip
-                        contentStyle={{ backgroundColor: '#0c1220', border: '1px solid #1e293b', borderRadius: '8px' }}
-                        itemStyle={{ fontSize: 11 }}
-                      />
-                      <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
-                        {customerMetrics.frequencyBucketsData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* DATA QUALITY VALIDATION PANEL (Span 12) */}
-              <div className="lg:col-span-12 premium-card rounded-2xl p-6 shadow-lg animate-in fade-in duration-300">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-                      <CheckSquare className="w-4 h-4 text-emerald-500" />
-                      Data Quality Validation Audit (Kiểm tra chất lượng sự kiện/dữ liệu)
-                    </h3>
-                    <p className="text-xs text-slate-500">Real-time database integrity audit logs and validation indicators</p>
-                  </div>
-                  {auditResults.totalIssues === 0 ? (
-                    <span className="text-[10px] bg-cyan-400/10 border border-emerald-500/30 text-emerald-500 font-bold px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-                      Pass - No issues
-                    </span>
-                  ) : (
-                    <span className="text-[10px] bg-rose-500/10 border border-rose-500/30 text-rose-500 font-bold px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-                      Fail - {auditResults.totalIssues} Warnings
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-mono mt-4">
-                  {/* Schema Integrity */}
-                  <div className="bg-[#050810] border border-slate-950 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-slate-400 block font-semibold">Schema Validation</span>
-                      <span className="text-[10px] text-slate-500">Quantity & prices positive</span>
-                    </div>
-                    {auditResults.schemaValid ? (
-                      <span className="text-[9px] bg-cyan-400/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
-                    ) : (
-                      <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded uppercase font-bold">Error</span>
-                    )}
-                  </div>
-
-                  {/* Temporal Consistency */}
-                  <div className="bg-[#050810] border border-slate-950 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-slate-400 block font-semibold">Temporal Consistency</span>
-                      <span className="text-[10px] text-slate-500">Order Dates ISO formatted</span>
-                    </div>
-                    {auditResults.datesValid ? (
-                      <span className="text-[9px] bg-cyan-400/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
-                    ) : (
-                      <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded uppercase font-bold">Error</span>
-                    )}
-                  </div>
-
-                  {/* Shipping Timeline Integrity */}
-                  <div className="bg-[#050810] border border-slate-950 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-slate-400 block font-semibold">Shipping Date Consistency</span>
-                      <span className="text-[10px] text-slate-500">Shipped Date &gt;= Order Date</span>
-                    </div>
-                    {auditResults.shippingValid ? (
-                      <span className="text-[9px] bg-cyan-400/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
-                    ) : (
-                      <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded uppercase font-bold">Warning</span>
-                    )}
-                  </div>
-
-                  {/* Schema keys */}
-                  <div className="bg-[#050810] border border-slate-950 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-slate-400 block font-semibold">Referential Mapping</span>
-                      <span className="text-[10px] text-slate-500">Unique order mapping check</span>
-                    </div>
-                    {auditResults.keysValid ? (
-                      <span className="text-[9px] bg-cyan-400/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded uppercase">OK</span>
-                    ) : (
-                      <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-2 py-0.5 rounded uppercase font-bold">Error</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
+              <DataQualityAudit auditResults={auditResults} />
             </div>
           )}
 
